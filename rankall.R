@@ -23,11 +23,15 @@ rankall <- function(outcome, num = "best") {
   x<-subset(x,!is.na(x[,3]))
   
   ## on ordonne par state
-  xo <- x[order(x[,2]),]
+  xo <- x[order(x[,2],x[,1]),]
   ## on ajoute une colonne de rang, dans chaque state
   xo$order.by.group <- unlist(with(xo,tapply(xo[,3],xo[,2], function(y) rank(y, ties.method="first"))))
   
+  ## Avec cette implémentation on ne peut pas simplement calculer le cas "worst", j'abandonne :'(
+  num <- if (num=="best") 1 else if (num=="worst") 40 else num
+  
   ##On joint la liste des states aux ranks pour obtenir le résultat
-  w <- merge(x=listState,y = subset(w,w$order.by.group==num), by = "State", all.x=TRUE)
-  return(w[,c(1,2)])
+  w <- merge(x=listState,y = subset(xo,xo$order.by.group==num), by = "State", all.x=TRUE)
+  colnames(w) <- c("state", "hospital")
+  return(w[,c(2,1)])
 }
